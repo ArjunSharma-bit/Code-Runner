@@ -1,5 +1,4 @@
 import Docker from 'dockerode';
-import * as fs from 'fs';
 
 const docker = new Docker();
 

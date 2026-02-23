@@ -1,17 +1,24 @@
 import { Process, Processor } from "@nestjs/bull";
 import type { Job } from "bull";
+import { DockerService } from "./docker.service";
 
 @Processor('code-execution')
 export class ExecutionProcessor {
+    constructor(private readonly dockerService: DockerService) { }
 
     @Process('execute-job')
     async handleExecution(job: Job) {
         console.log('Worker picked up job:', job.id)
-        console.log('Code to run:', job.data.code)
 
-        await new Promise((resolve) => setTimeout(resolve, 3000))
+        const { language, code } = job.data
 
-        console.log('Job Completed;', job.id)
-        return { result: 'Hello World (Sim)' }
+        const output = await this.dockerService.runCode(language, code)
+
+        console.log('Job Completed:', job.id)
+        console.log('=-=-=-=-=-=-=-=-=-=-=-=-=')
+        console.log(output)
+        console.log('=-=-=-=-=-=-=-=-=-=-=-=-=')
+
+        return { result: output }
     }
 }
