@@ -6,7 +6,7 @@ import { DockerService } from "./docker.service";
 export class ExecutionProcessor {
     constructor(private readonly dockerService: DockerService) { }
 
-    @Process('execute-job')
+    @Process({ name: 'execute-job', concurrency: 3 })
     async handleExecution(job: Job) {
         console.log('Worker picked up job:', job.id)
 

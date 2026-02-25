@@ -29,23 +29,33 @@ export class DockerService {
         try {
             await container.start();
 
-            const logs = await container.logs({
-                follow: true,
-                stdout: true,
-                stderr: true,
+            const timeOutMs = 5000;
+
+            const timeOutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Time Limit exceeded')), timeOutMs)
             })
 
-            const output = await this.compileOutput(logs, container);
-            return output;
+            const execPromise = (async () => {
+                const logs = await container.logs({
+                    follow: true,
+                    stdout: true,
+                    stderr: true,
+                })
+
+                const output = await this.compileOutput(logs, container);
+                return output;
+            })()
+
+            const result = await Promise.race([execPromise, timeOutPromise])
+
+            return result as string;
         } catch (error) {
             console.error('Docker Error', error);
             return `Error exeecuting code: ${error.message}`;
         } finally {
             try {
                 await container.remove({ force: true });
-            } catch (e) {
-
-            }
+            } catch (e) { }
         }
     }
 
@@ -70,24 +80,52 @@ export class DockerService {
             let stdoutBuffer = '';
             let stderrBuffer = '';
 
+            const Max_Buffer_Size = 10 * 1024;
+            let stdoutTruncated = false;
+            let stderrTruncated = false;
+
+
             const stdoutStream = new Writable({
                 write(chunk, encoding, next) {
-                    stdoutBuffer += chunk.toString();
+                    if (stdoutTruncated) return next()
+
+                    const text = chunk.toString();
+                    if (stdoutBuffer.length + text.length > Max_Buffer_Size) {
+                        const remaining = Max_Buffer_Size - stdoutBuffer.length;
+                        stdoutBuffer += text.slice(0, remaining)
+                        stdoutBuffer += '\n...[Output truncated duuue to size Limit]';
+                        stdoutTruncated = true;
+                    } else {
+                        stdoutBuffer += text;
+                    }
                     next()
                 }
             })
 
             const stderrStream = new Writable({
                 write(chunk, encoding, next) {
-                    stderrBuffer += chunk.toString();
+                    if (stderrTruncated) return next()
+
+                    const text = chunk.toString();
+                    if (stderrBuffer.length + text.length > Max_Buffer_Size) {
+                        const remaining = Max_Buffer_Size - stderrBuffer.length;
+                        stderrBuffer += text.slice(0, remaining)
+                        stderrBuffer += '\n...[Output truncated duuue to size Limit]';
+                        stderrTruncated = true;
+                    } else {
+                        stderrBuffer += text;
+                    }
                     next()
                 }
             })
+
+
             container.modem.demuxStream(stream, stdoutStream, stderrStream);
 
             stream.on('end', async () => {
-
-                await container.wait();
+                try {
+                    await container.wait();
+                } catch (e) { }
                 resolve({ stdout: stdoutBuffer.trim(), stderr: stderrBuffer.trim() });
             });
         })
