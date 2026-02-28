@@ -4,6 +4,8 @@ import { ExecutionService } from './execution.service';
 import { BullModule } from '@nestjs/bull';
 import { ExecutionProcessor } from './execution.processor';
 import { DockerService } from './docker.service';
+import { EventsGateway } from './events.gateway';
+import { QueueListener } from './queue.listener';
 
 @Module({
   imports: [BullModule.registerQueue({
@@ -11,6 +13,6 @@ import { DockerService } from './docker.service';
   }),
   ],
   controllers: [ExecutionController],
-  providers: [ExecutionService, ExecutionProcessor, DockerService]
+  providers: [ExecutionService, ExecutionProcessor, DockerService, EventsGateway, QueueListener]
 })
 export class ExecutionModule { }

@@ -19,6 +19,6 @@ export class ExecutionProcessor {
         console.log(output)
         console.log('=-=-=-=-=-=-=-=-=-=-=-=-=')
 
-        return { result: output }
+        return output
     }
 }
