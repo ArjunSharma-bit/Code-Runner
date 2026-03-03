@@ -15,9 +15,7 @@ export class ExecutionProcessor {
         const output = await this.dockerService.runCode(language, code)
 
         console.log('Job Completed:', job.id)
-        console.log('=-=-=-=-=-=-=-=-=-=-=-=-=')
         console.log(output)
-        console.log('=-=-=-=-=-=-=-=-=-=-=-=-=')
 
         return output
     }

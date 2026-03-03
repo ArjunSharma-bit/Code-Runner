@@ -13,16 +13,19 @@ export class DockerService {
     async runCode(language: string, code: string): Promise<{ stdout: string; stderr: string } | string> {
         const image = this.getImageForLang(language);
         const cmd = this.getCmd(language, code);
+        const user = this.getUserForLang(language);
 
         const container = await this.docker.createContainer({
             Image: image,
             Cmd: cmd,
             Tty: false,
+            User: user,
             NetworkDisabled: true,
             HostConfig: {
                 Memory: 128 * 1024 * 1024,
                 CpuPeriod: 100000,
                 CpuQuota: 50000,
+                ReadonlyRootfs: true,
             }
         })
 
@@ -64,6 +67,14 @@ export class DockerService {
             case 'python': return 'python:alpine'
             case 'javascript': return 'node:alpine'
             default: throw new Error(`Unsupported Language: ${lang}`)
+        }
+    }
+
+    private getUserForLang(lang: string): string {
+        switch (lang) {
+            case 'python': return 'nobody';
+            case 'javascript': return 'node';
+            default: return '';
         }
     }
 
