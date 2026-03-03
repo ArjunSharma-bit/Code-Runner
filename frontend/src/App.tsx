@@ -88,7 +88,7 @@ export default function App() {
     <div className="flex flex-col h-screen bg-gray-900 text-white font-sans">
       {/* HEADER */}
       <header className="p-4 bg-gray-800 border-b border-gray-700 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-blue-400">CodeRunner v2 (Real-Time)</h1>
+        <h1 className="text-xl font-bold text-blue-400">CodeRunner v2 </h1>
 
         <div className="flex gap-4">
           <select
@@ -108,7 +108,7 @@ export default function App() {
               : 'bg-green-600 hover:bg-green-500 text-white'
               }`}
           >
-            {isLoading ? 'Running...' : 'Run Code ▶'}
+            {isLoading ? 'Running...' : 'Run Code'}
           </button>
         </div>
       </header>
