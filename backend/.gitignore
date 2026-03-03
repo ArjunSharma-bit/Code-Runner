@@ -2,7 +2,8 @@
 /dist
 /node_modules
 /build
-
+/dumper.js
+/project-dump.txt
 # Logs
 logs
 *.log
